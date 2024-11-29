@@ -52,21 +52,21 @@ md"""
 """
 
 # ╔═╡ 9438925c-6a62-4d22-a63a-bea3a1ed4895
-@bind nl PlutoUI.Slider(0:1:10, default = 1) # Noise level
+@bind nl PlutoUI.Slider(0:1:10, default = 1, show_value=true) # Noise level
 
 # ╔═╡ 91644649-6f53-441e-9958-f275d7f9789f
 nl
 
 # ╔═╡ 2cd273d3-8f5c-41b0-84fa-5b7beea04e71
 # Number of trials (N of Trials = N * 20)
-@bind N PlutoUI.Slider(5:5:20, default = 10)
+@bind N PlutoUI.Slider(1:2:20, default = 10, show_value=true)
 
 # ╔═╡ 0b6070fb-aa62-423b-baf4-740c6a5e1507
 design =
     SingleSubjectDesign(;
         conditions = Dict(
             :condition => ["car", "face"],
-            :continuous => range(0, 5, length = 10),
+            :continuous => range(0, 5, length = 5),
         ),
     ) |> x -> RepeatDesign(x, N)
 
@@ -104,22 +104,26 @@ plot_erp(
 
 # ╔═╡ 6c625805-791d-4513-b0d9-1042dd7fa86b
 begin
-	ef = effects(Dict(:condition => ["car", "face"], :continuous => range(0, 5, length = 10)), m)
-	f = plot_erp(ef;
+	ef = effects(Dict(:condition => ["face"], :continuous => range(0, 5, length = 10)), m)
+	f = Figure(; size = (600, 350))
+	plot_erp!(f, ef;
     axis = (
-        title = "Predicted event-related potential (ERP)",
-        xlabel = "Time [s]",
-        ylabel = "Amplitude [μV]",
+        title = "",
+        xlabel = "",
+        ylabel = "",
     ),
+	layout = (;  use_colorbar = false, use_legend = false, hidespines = (:r,:l,:t,:b),
+			hidedecorations = (:label => true, :ticks => true, :ticklabels => true)),
     mapping = (:color => :continuous, linestyle = :condition, group = :continuous),
+	visual = (; linewidth=2.5),
     legend = (; valign = :top, halign = :right, tellwidth = false),
     categorical_color = false,
 	);
 	
 	# Workaround to separate legend and colorbar (will be fixed in a future UnfoldMakie version)
-	legend = f.content[2]
-	f[:, 1] = legend
-	current_figure()
+	#legend = f.content[2]
+	#f[:, 1] = legend
+	f
 end
 
 # ╔═╡ 0f0d3e96-98e9-48ee-a9fe-52448e50f8aa
@@ -217,6 +221,12 @@ end
 
 # ╔═╡ 3c6b73d3-bb69-45f1-af59-97593b9e9185
 mean(mean.(eachcol(gt_pad - res')))^2
+
+# ╔═╡ 3fbfbdf3-5872-4bb4-9971-7c28dade9ebe
+#save("202410_130_trials.pdf", f)
+
+# ╔═╡ 3b70b415-4ee7-493d-a9d7-87f41fd8f8c5
+N * 10
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
@@ -2543,5 +2553,7 @@ version = "3.6.0+0"
 # ╠═3c6b73d3-bb69-45f1-af59-97593b9e9185
 # ╠═9438925c-6a62-4d22-a63a-bea3a1ed4895
 # ╠═2cd273d3-8f5c-41b0-84fa-5b7beea04e71
+# ╠═3fbfbdf3-5872-4bb4-9971-7c28dade9ebe
+# ╠═3b70b415-4ee7-493d-a9d7-87f41fd8f8c5
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002

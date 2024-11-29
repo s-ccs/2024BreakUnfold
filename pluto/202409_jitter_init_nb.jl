@@ -45,12 +45,6 @@ begin
 
 end
 
-# ╔═╡ 4fde0fda-f1bb-4269-a3a2-ab20ad489410
-@bind nl PlutoUI.Slider(0:1:10, default = 1)
-
-# ╔═╡ d59cca3e-e967-4c6d-a614-aa52f7b21ef8
-nl
-
 # ╔═╡ 6e8afa7c-ef81-446f-a3f4-1940b11c6101
 @bind shuffl PlutoUI.CheckBox(default=false)
 
@@ -82,6 +76,9 @@ offs
 
 # ╔═╡ f41feb2e-4348-4e81-856b-bbcba91ad7f1
 @bind w PlutoUI.Slider(0:1:50, default = 10, show_value = true)
+
+# ╔═╡ 4fde0fda-f1bb-4269-a3a2-ab20ad489410
+@bind nl PlutoUI.Slider(0:1:10, default = 1, show_value = true)
 
 # ╔═╡ dd3ca184-4dde-4829-ad04-a2e584ccf55b
 begin
@@ -121,26 +118,36 @@ lines(data[500:1500])
 # ╔═╡ 9605b197-faca-4afd-9bd0-90d6b8d9359c
 size(evts)
 
+# ╔═╡ d59cca3e-e967-4c6d-a614-aa52f7b21ef8
+nl
+
 # ╔═╡ e4d4148a-c341-490f-8922-046c88e24117
 begin
-	f = plot_erp(
+	f = Figure(; size = (600, 350))
+	plot_erp!(f,
     effects(Dict(:condition => ["face"], :continuous => 0:0.5:5), m);
     axis = (
-        title = "Predicted event-related potential (ERP)",
-        xlabel = "Time [s]",
-        ylabel = "Amplitude [μV]",
+        title = "",
+        xlabel = "",
+        ylabel = ""
     ),
+	layout = (;  use_colorbar = false, use_legend = false, hidespines = (:r,:l,:t,:b),
+			hidedecorations = (:label => true, :ticks => true, :ticklabels => true)), 
     mapping = (:color => :continuous, linestyle = :condition, group = :continuous),
+	visual = (; linewidth=2.5),
     legend = (; valign = :top, halign = :right, tellwidth = false),
 	colorbar = (; tellwidth = true),
     categorical_color = false,
 	);
 	
 	# Workaround to separate legend and colorbar (will be fixed in a future UnfoldMakie version)
-	legend = f.content[2]
-	f[:, 1] = legend
-	current_figure()
+	#legend = f.content[2]
+	#f[:, 1] = legend
+	f
 end
+
+# ╔═╡ c0d6c918-9166-43ed-bd76-6ad877e1aa5d
+#CairoMakie.save("202410_no_randomness.pdf", f)
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
@@ -2439,5 +2446,6 @@ version = "3.6.0+0"
 # ╠═f41feb2e-4348-4e81-856b-bbcba91ad7f1
 # ╠═4fde0fda-f1bb-4269-a3a2-ab20ad489410
 # ╠═e4d4148a-c341-490f-8922-046c88e24117
+# ╠═c0d6c918-9166-43ed-bd76-6ad877e1aa5d
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
