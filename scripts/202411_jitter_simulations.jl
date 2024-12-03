@@ -8,7 +8,9 @@ allparams = Dict(
 "shuffle" => [false, true], # random order sequence?
 "offset" => [1, 2], # Event onset offset -> influences overlap
 "width" => [20, 40], # Width of distribution -> determines jitter; 0 = no jitter
-"seed" => collect(1:5)
+"seed" => collect(1:5),
+"sfreq" => 100,
+"τ" => (-0.1, 1)
 )
 
 dicts = dict_list(allparams)

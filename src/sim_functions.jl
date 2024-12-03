@@ -1,29 +1,30 @@
 # Function to be used in simulations
 
-function jitter_simulation(d::Dict; τ=[-0.1, 1], sfreq=100)
-    @unpack noiselevel shuffle offset width seed
+#function jitter_simulation(d::Dict)
+    @unpack noiselevel shuffle offset width seed sfreq τ
 
     ## Components
     p1 = LinearModelComponent(;
-        basis=p100(),
+        basis=p100(;sfreq=sfreq),
         formula=@formula(0 ~ 1),
-        β=[5])
+        β=[5]
+        )
 
     n1 = LinearModelComponent(;
-        basis=n170(),
+        basis=n170(;sfreq=sfreq),
         formula=@formula(0 ~ 1),
         β=[5],
     )
 
     p3 = LinearModelComponent(;
-        basis=p300(),
+        basis=p300(;sfreq=sfreq),
         formula=@formula(0 ~ 1),
         β=[7],
     )
 
     components = [p1, n1, p3]
     ## Design
-    if shuffl
+    if shuffle
         design =
             SingleSubjectDesign(;
                 conditions=Dict(
@@ -69,21 +70,27 @@ function jitter_simulation(d::Dict; τ=[-0.1, 1], sfreq=100)
         return_epoched=true,
     )
 
-    g = reshape(gt_data, 1, size(gt_data)...)
-    times = range(1, 45)
+
+    ## change gt to effects style DataFrame
+    g = format_gt(gt_data, τ, sfreq) # zero-pad ground_truth and get into correct format
+    times = range(τ[1], τ[2], size(gt_data,2)) # get correct times vector
     gt_effects = Unfold.result_to_table([g], [gt_events], [times], ["effects"])
 
     # Fit Unfold
     m = fit(
         UnfoldModel,
-        [Any => (@formula(0 ~ 1 + condition + spl(continuous, 4)),
-            firbasis(τ=τ, sfreq=100, name="basis"),
+        [Any => (@formula(0 ~ 1), #(@formula(0 ~ 1 + condition + spl(continuous, 4)),
+            firbasis(τ=τ, sfreq=sfreq, name="basis"),
         )],
         evts,
         data,
     )
 
+    ## Calculate marginalized effects
     result_effects = effects(effects_dict, m); 
+
+    # Calculate MSE
+    MSE = mean((g - result_effects.yhat).^2)
 
     return DataFrame(
         results = result_effects,
@@ -93,6 +100,17 @@ function jitter_simulation(d::Dict; τ=[-0.1, 1], sfreq=100)
         shuffle = shuffle,
         offset = offset,
         width = width,
-        seed = seed
+        seed = seed,
+        sfreq = sfreq,
+        τ = τ,
+        MSE = MSE
         )
+#end
+
+# Function to zero-pad ground_truth and get into correct format
+function format_gt(gt_data, τ, sfreq)
+    gt_data = pad_array(reshape(gt_data, size(gt_data,1)), (Int(τ[1]*sfreq), τ[2]*100-size(gt_data, 1)+1), 0); # pad ground truth to be same length as estimates
+
+    gt_data = reshape(gt_data, 1, size(gt_data)...) # reshape to be channel x samlplepoints x event
+    return gt_data
 end
