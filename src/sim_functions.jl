@@ -1,6 +1,6 @@
 # Function to be used in simulations
 
-#function jitter_simulation(d::Dict)
+function jitter_simulation(d::Dict)
     @unpack noiselevel shuffle offset width seed sfreq τ
 
     ## Components
@@ -105,7 +105,7 @@
         τ = τ,
         MSE = MSE
         )
-#end
+end
 
 # Function to zero-pad ground_truth and get into correct format
 function format_gt(gt_data, τ, sfreq)
