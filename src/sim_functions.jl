@@ -73,7 +73,7 @@ function jitter_simulation(d::Dict)
 
     ## change gt to effects style DataFrame
     g = format_gt(gt_data, τ, sfreq) # zero-pad ground_truth and get into correct format
-    times = range(τ[1], τ[2], size(gt_data,2)) # get correct times vector
+    times = range(τ[1], τ[2], size(g,2)) # get correct times vector
     gt_effects = Unfold.result_to_table([g], [gt_events], [times], ["effects"])
 
     # Fit Unfold
@@ -92,25 +92,19 @@ function jitter_simulation(d::Dict)
     # Calculate MSE
     MSE = mean((g - result_effects.yhat).^2)
 
-    return DataFrame(
+    return DataFrame(;
         results = result_effects,
         ground_truth = gt_effects,
         model = m,
-        noiselevel = noiselevel,
-        shuffle = shuffle,
-        offset = offset,
-        width = width,
-        seed = seed,
-        sfreq = sfreq,
-        τ = τ,
-        MSE = MSE
-        )
+        MSE = MSE,
+        d...
+        ) # change to d...
 end
 
 # Function to zero-pad ground_truth and get into correct format
 function format_gt(gt_data, τ, sfreq)
-    gt_data = pad_array(reshape(gt_data, size(gt_data,1)), (Int(τ[1]*sfreq), τ[2]*100-size(gt_data, 1)+1), 0); # pad ground truth to be same length as estimates
+    gt_data = pad_array(reshape(gt_data, size(gt_data,1)), (Int(τ[1]*sfreq), Int(τ[2]*100-size(gt_data, 1)+1)), 0); # pad ground truth to be same length as estimates
 
-    gt_data = reshape(gt_data, 1, size(gt_data)...) # reshape to be channel x samlplepoints x event
+    gt_data = reshape(gt_data, 1, size(gt_data)...) # reshape to be channel x samplepoints x event
     return gt_data
 end
