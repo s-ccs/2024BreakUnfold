@@ -1,11 +1,11 @@
 module BreakUnfold
 
+using Reexport
 using Unfold, UnfoldSim
 using DrWatson
-using Random, DataFrames, DataFramesMeta, Statistics
-
+using Random, Statistics
+@reexport using DataFrames, DataFramesMeta
 # export all libraries
-export Unfold, UnfoldSim, Random, DataFrames, DataFramesMeta, Statistics
 
 include("sim_types.jl")
 include("sim_functions.jl")

@@ -52,7 +52,7 @@ function FRP_sim(seed, sfreq, shuffle, width, offset; noiselevel=5, n_trials=15)
 
     ## Design and simulate data
     cond_dict = Dict(:condition => ["bike"])
-    design, data, evts = design_and_simulation(seed, cond_dict, components, width, offset; shuffle=shuffle, repeat=n_trials)
+    design, data, evts = design_and_simulation(seed, cond_dict, components, width, offset; shuffle=shuffle, repeat=n_trials, noiselevel = noiselevel)
 
     return design, data, evts, cond_dict, components
 end

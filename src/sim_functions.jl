@@ -30,7 +30,7 @@ function jitter_simulation(d::Dict)
     evts, # Simulated events
     effects_dict, # Dictionary for conditions and such; needed for marg. eff and ground truth
     components = # components of ERP
-        FRP_sim(seed, sfreq, shuffle, width, offset; noiselevel=noiselevel, n_trials=15)
+        FRP_sim(seed, sfreq, shuffle, width, offset; noiselevel=noiselevel, n_trials=90)
 
     # Simulate ground truth
     gt_effects = get_ground_truth(seed, design, effects_dict, components, τ, sfreq)
@@ -43,6 +43,7 @@ function jitter_simulation(d::Dict)
         )],
         evts,
         data,
+          #  solver = (x,y)->Unfold.solver_predefined(x,y;solver=:cholesky)
     )
 
     ## Calculate marginalized effects
