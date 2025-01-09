@@ -59,7 +59,7 @@ function jitter_simulation(d::Dict)
         model=m,
         MSE=MSE,
         d...
-    ) # change to d...
+    )
 end
 
 # Function to zero-pad ground_truth and get into correct format

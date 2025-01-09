@@ -14,9 +14,9 @@ allparams = Dict(
 )
 
 dicts = dict_list(tosymboldict(allparams))
-# Simulations
 
+# Simulations
 all_results = DataFrame()
-@profview for d in dicts
+@time for d in dicts
     append!(all_results, jitter_simulation(d))
 end
