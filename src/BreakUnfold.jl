@@ -10,6 +10,6 @@ using Random, Statistics
 include("sim_types.jl")
 include("sim_functions.jl")
 
-export jitter_simulation
+export jitter_simulation, FRP_sim, RT_sim
 
 end

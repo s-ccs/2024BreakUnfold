@@ -22,15 +22,16 @@ function get_ground_truth(seed, design, effects_dict, components, τ, sfreq)
 end
 
 # Main simulation function; to be used in Dr.Watson script
-function jitter_simulation(d::Dict)
+function jitter_simulation(d::Dict, sim_function::Function)
     @unpack noiselevel, shuffle, offset, width, seed, sfreq, τ = d
 
     design, # Simulation design
     data, # Simulated data
     evts, # Simulated events
     effects_dict, # Dictionary for conditions and such; needed for marg. eff and ground truth
-    components = # components of ERP
-        FRP_sim(seed, sfreq, shuffle, width, offset; noiselevel=noiselevel, n_trials=90)
+    components, # components of ERP
+    formula = # formula for fitting
+        sim_function(seed, sfreq, width, offset, τ; shuffle = shuffle, noiselevel=noiselevel, n_trials=90)
 
     # Simulate ground truth
     gt_effects = get_ground_truth(seed, design, effects_dict, components, τ, sfreq)
@@ -38,18 +39,16 @@ function jitter_simulation(d::Dict)
     # Fit Unfold
     m = fit(
         UnfoldModel,
-        [Any => (@formula(0 ~ 1), #(@formula(0 ~ 1 + condition + spl(continuous, 4)),
-            firbasis(τ=τ, sfreq=sfreq, name="basis"),
-        )],
+        formula,
         evts,
         data,
-          #  solver = (x,y)->Unfold.solver_predefined(x,y;solver=:cholesky)
+        #  solver = (x,y)->Unfold.solver_predefined(x,y;solver=:cholesky)
     )
 
     ## Calculate marginalized effects
     result_effects = effects(effects_dict, m)
 
-    # Calculate MSE
+    # Calculate MSE :TODO make this more general to be used with all conditions (basically unique())
     MSE = mean((@rsubset(gt_effects, :condition .== "bike").yhat -
                 @rsubset(result_effects, :condition .== "bike").yhat) .^ 2)
 
@@ -64,8 +63,43 @@ end
 
 # Function to zero-pad ground_truth and get into correct format
 function format_gt(gt_data, τ, sfreq)
-    gt_data = pad_array(reshape(gt_data, size(gt_data, 1)), (Int(τ[1] * sfreq), Int(τ[2] * 100 - size(gt_data, 1) + 1)), 0) # pad ground truth to be same length as estimates
+    sp = Int(abs(τ[1]) * sfreq) + Int(τ[2] * sfreq) # number of sample points
+    padded_data = zeros(sp+1, size(gt_data, 2))
 
-    gt_data = reshape(gt_data, 1, size(gt_data)...) # reshape to be channel x samplepoints x event
-    return gt_data
+    for col in 1:size(gt_data, 2)
+        tmp = pad_array(reshape(gt_data[:,col], size(gt_data[:,col], 1)), (Int(τ[1] * sfreq), Int(τ[2] * 100 - size(gt_data[:,col], 1) + 1)), 0) # pad ground truth to be same length as estimates
+        padded_data[:, col] = tmp
+    end
+    padded_data = reshape(padded_data, 1, size(padded_data)...) # reshape to be channel x samplepoints x event
+    
+    return padded_data
+end
+
+# Changes effects design event DataFrame to be used with Unfold.result_to_table
+df_to_vec(df) = [@rsubset(df, :event == e) for e in unique(df.event)] 
+
+function reshape_eff_to_event_arrays(eff::Array{T, 3}, df::DataFrame) where T
+    # Get events
+    events = unique(df.event)
+
+    # Get number of events
+    num_unique_events = length(events)
+
+    # Create an empty array to hold the result
+    result = Vector{Array{T, 3}}(undef, num_unique_events)
+    
+    # For each event, we need to extract the corresponding indices from the DataFrame
+    for (i, event) in enumerate(events)
+        # Get the indices of the rows corresponding to the current event
+        event_indices = findall(x -> x == event, df.event)
+        
+        # Extract the relevant slice of eff based on the current event
+        # eff has shape (1, 110, 6), and we want to match it to the size of the event indices
+        eff_slice = eff[:, :, event_indices]
+        
+        # Store the slice in the result array
+        result[i] = eff_slice
+    end
+    
+    return result
 end
