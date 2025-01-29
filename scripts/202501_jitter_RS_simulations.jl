@@ -7,8 +7,8 @@ allparams = Dict(
     "noiselevel" => [7],#collect(3:6),
     "shuffle" => [false], # random order sequence?
     "offset" => [10], # Event onset offset -> influences overlap
-    "width" => [5, 10], # Width of distribution -> determines jitter; 0 = no jitter
-    "seed" => collect(1:2),
+    "width" => [5, 10, 15, 20, 25, 30], # Width of distribution -> determines jitter; 0 = no jitter
+    "seed" => collect(1:50),
     "sfreq" => 100,
     "τ" => (-0.1, 1)
 )

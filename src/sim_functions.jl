@@ -49,14 +49,13 @@ function jitter_simulation(d::Dict, sim_function::Function)
     result_effects = effects(effects_dict, m)
 
     # Calculate MSE :TODO make this more general to be used with all conditions (basically unique())
-    MSE = mean((@rsubset(gt_effects, :condition .== "bike").yhat -
-                @rsubset(result_effects, :condition .== "bike").yhat) .^ 2)
+    MSE = calculate_mse(result_effects, gt_effects, effects_dict)
 
     return DataFrame(;
         results=result_effects,
         ground_truth=gt_effects,
         model=m,
-        MSE=MSE,
+        MSE=[MSE],
         d...
     )
 end

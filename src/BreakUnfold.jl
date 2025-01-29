@@ -9,6 +9,8 @@ using Random, Statistics
 
 include("sim_types.jl")
 include("sim_functions.jl")
+include("helper_functions.jl")
+include("plotting_functions.jl")
 
 export jitter_simulation, FRP_sim, RT_sim
 
