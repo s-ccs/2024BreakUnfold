@@ -13,7 +13,7 @@ function beeswarm_results(df::DataFrame, collumn::Symbol; metric = :MSE)
     #tm = unique(df[!, collumn])
     #Makie.Categorical(Makie.wong_colors()[1:7])
     f = Figure()
-    draw!(f, p1 + p2, scales(Color = (;colormap = Makie.wong_colors())); axis = (;xlabel = String(collumn), ylabel = String(metric)))
+    draw!(f, p1 + p2, scales(Color = (;colormap = Makie.wong_colors())); axis = (;limits = (nothing, (-0.2, 60)), xlabel = String(collumn), ylabel = String(metric)))
     #draw!(f, p2)
     f
 end

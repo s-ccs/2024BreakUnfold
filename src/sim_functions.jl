@@ -35,7 +35,7 @@ function jitter_simulation(d::Dict, sim_function::Function)
 
     # Simulate ground truth
     gt_effects = get_ground_truth(seed, design, effects_dict, components, τ, sfreq)
-
+    @debug size(evts)
     # Fit Unfold
     m = fit(
         UnfoldModel,

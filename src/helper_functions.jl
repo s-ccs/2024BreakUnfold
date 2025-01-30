@@ -14,12 +14,17 @@ function calculate_mse(results::DataFrame, ground_truth::DataFrame, effects_dict
 
     # Add event to dict to make dict_list
     full_factorial = UnfoldSim.factorproduct(((; k => v) for (k, v) in pairs(effects_dict))...) |> DataFrame
-    @debug full_factorial
+
+    # In singular events ground_truth doesn't have an event collumn
+    if !("event" ∈ names(ground_truth))
+        ground_truth[:, :event] .= Any
+    end
 
     # Group DataFrames by event
     group_results = groupby(results, :event)
     group_ground_truth = groupby(ground_truth, :event)
-
+    #@debug group_results
+    #@debug full_factorial
     group_mse = []
     for both_groups in zip(group_results, group_ground_truth)
         tmp_mse = []
@@ -31,10 +36,13 @@ function calculate_mse(results::DataFrame, ground_truth::DataFrame, effects_dict
             d1 = subset(both_groups[1], collums => x -> x .== tmp_value) # I am not entirely sure why this works, but it does
             d2 = subset(both_groups[2], collums => x -> x .== tmp_value)
             push!(tmp_mse, mean(d1.yhat .- d2.yhat) .^ 2)
+            #@debug d1, d2
+
         end
         push!(group_mse, mean(tmp_mse))
     end
 
+    @debug group_mse
     # Calculate the mean of the MSE values
     return overall_mse = mean(group_mse)
 end

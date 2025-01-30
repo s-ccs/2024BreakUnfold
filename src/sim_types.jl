@@ -1,6 +1,6 @@
 # Types of simulations
 
-# Design function
+# Design function TODO: make more general; maybe second function
 function design_and_simulation(seed, cond_dict::Dict, components, width, offset; shuffle=false, repeat=15, noiselevel=5)
     if shuffle
         design =
@@ -29,7 +29,7 @@ end
 
 
 # FRP like simulation; one shape, not changing, one condition
-function FRP_sim(seed, sfreq, width, offset, τ;shuffle = false, noiselevel=5, n_trials=15) # TODO: change some stuff (e.g. shuffle to kwarks)
+function FRP_sim(seed, sfreq, width, offset, τ;shuffle = false, noiselevel=5, n_trials=30) # TODO: change some stuff (e.g. shuffle to kwarks)
     ## Components
     p1 = LinearModelComponent(;
         basis=p100(; sfreq=sfreq),
@@ -45,18 +45,18 @@ function FRP_sim(seed, sfreq, width, offset, τ;shuffle = false, noiselevel=5, n
 
     p3 = LinearModelComponent(;
         basis=p300(; sfreq=sfreq),
-        formula=@formula(0 ~ 1),
-        β=[7],
+        formula=@formula(0 ~ 1 + condition),
+        β=[7, 2],
     )
 
     components = [p1, n1, p3]
 
     ## Design and simulate data
-    cond_dict = Dict(:condition => ["bike"])
+    cond_dict = Dict(:condition => ["bike", "face"])
     design, data, evts = design_and_simulation(seed, cond_dict, components, width, offset; shuffle=shuffle, repeat=n_trials, noiselevel=noiselevel)
 
     # Make formula to be used during fitting
-    formula = [Any => (@formula(0 ~ 1), #(@formula(0 ~ 1 + condition + spl(continuous, 4)),
+    formula = [Any => (@formula(0 ~ 1 + condition), #(@formula(0 ~ 1 + condition + spl(continuous, 4)),
         firbasis(τ=τ, sfreq=sfreq, name=""),
     )]
 

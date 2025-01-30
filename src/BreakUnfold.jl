@@ -4,7 +4,7 @@ using Reexport
 using Unfold, UnfoldSim
 using DrWatson
 using Random, Statistics
-@reexport using DataFrames, DataFramesMeta
+@reexport using DataFrames, DataFramesMeta, ProgressBars
 # export all libraries
 
 include("sim_types.jl")

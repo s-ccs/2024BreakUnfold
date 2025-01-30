@@ -8,7 +8,7 @@ allparams = Dict(
     "shuffle" => [false], # random order sequence?
     "offset" => [10], # Event onset offset -> influences overlap
     "width" => [5, 10, 15, 20, 30, 40, 50], # Width of distribution -> determines jitter; 0 = no jitter
-    "seed" => collect(1:2),
+    "seed" => collect(1:25),
     "sfreq" => 100,
     "τ" => (-0.1, 1)
 )
@@ -16,7 +16,12 @@ allparams = Dict(
 dicts = dict_list(tosymboldict(allparams))
 
 # Simulations
-all_results = DataFrame()
+all_results_FRP = DataFrame()
+all_results_RT = DataFrame()
+pbar = ProgressBar(total=size(dicts, 1))
+
 @time for d in dicts
-    append!(all_results, jitter_simulation(d, RT_sim))
+    update(pbar)
+    append!(all_results_FRP, jitter_simulation(d, FRP_sim))
+    append!(all_results_RT, jitter_simulation(d, RT_sim))
 end
