@@ -1,4 +1,5 @@
 name = "BreakUnfold"
+uuid = "27c6bf10-064e-4fe1-bfd2-d9d2a3e8113f"
 authors = ["René Skukies"]
 
 [deps]
