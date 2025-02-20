@@ -22,8 +22,8 @@ function get_ground_truth(seed, design, effects_dict, components, τ, sfreq)
 end
 
 # Main simulation function; to be used in Dr.Watson script
-function jitter_simulation(d::Dict, sim_function::Function)
-    @unpack noiselevel, shuffle, offset, width, seed, sfreq, τ = d
+function jitter_simulation(d::Dict)
+    @unpack noiselevel, shuffle, offset, width, seed, sfreq, τ, sim_fun = d
 
     design, # Simulation design
     data, # Simulated data
@@ -31,7 +31,7 @@ function jitter_simulation(d::Dict, sim_function::Function)
     effects_dict, # Dictionary for conditions and such; needed for marg. eff and ground truth
     components, # components of ERP
     formula = # formula for fitting
-        sim_function(seed, sfreq, width, offset, τ; shuffle = shuffle, noiselevel=noiselevel, n_trials=90)
+        sim_fun(seed, sfreq, width, offset, τ; shuffle = shuffle, noiselevel=noiselevel, n_trials=90)
 
     # Simulate ground truth
     gt_effects = get_ground_truth(seed, design, effects_dict, components, τ, sfreq)
@@ -51,7 +51,11 @@ function jitter_simulation(d::Dict, sim_function::Function)
     # Calculate MSE :TODO make this more general to be used with all conditions (basically unique())
     MSE = calculate_mse(result_effects, gt_effects, effects_dict)
 
+    # delete sim_fun from dict for saving
+    delete!(d, :sim_fun)
+    @show d
     return DataFrame(;
+        sim_function = string(split(string(sim_fun), "_")[1]),
         results=result_effects,
         ground_truth=gt_effects,
         model=m,
