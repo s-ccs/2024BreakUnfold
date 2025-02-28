@@ -119,7 +119,76 @@ function RT_sim(seed, sfreq, width, offset, τ; shuffle = false, noiselevel=5, n
 end
 
 # Naturalistic/ complex simulation; 
-function NAT_sim(sfreq, width, offset; noiselevel=5, n_trials=15, shuffle=true)
+function NAT_sim(seed, sfreq, width, offset, τ; shuffle = false, noiselevel=5, n_trials=4)
 
-    return design, data, evts, cond_dict
+    # Create components (one component complex for S(timulus); one for R(esponse))    
+        p1 = LinearModelComponent(;
+        basis=p100(; sfreq=sfreq),
+        formula=@formula(0 ~ 1),
+        β=[5]
+    )
+
+    n1 = LinearModelComponent(;
+        basis=n170(; sfreq=sfreq),
+        formula=@formula(0 ~ 1 + sac_amplitude^2),
+        β=[5, 0.4],
+    )
+
+    p3 = LinearModelComponent(;
+        basis=p300(; sfreq=sfreq),
+        formula=@formula(0 ~ 1 + condition + evidence^2 + duration),
+        β=[7, 2, 0.3, 0.5],
+    )
+
+    #=
+    resp = LinearModelComponent(;
+        basis=UnfoldSim.hanning(Int(0.5 * sfreq)), # sfreq = 100 for the other bases
+        formula=@formula(0 ~ 1),
+        β=[6],
+        offset=-10,
+    )
+    =#
+
+    event = "Stim"
+    #components = Dict("Stim" => [p1, n1, p3])
+    components = [p1, n1, p3] #Dict(event => [p1, n1, p3])
+    #components = Dict('S' => [p1, n1, p3], 'R' => [resp])
+
+    # Design
+    cond_dict = Dict(
+        :condition => ["face", "bike"],
+        :sac_amplitude => range(0, 5, length = 10),
+        :evidence => range(1, 5, length = 8),
+        :duration => range(2, 8, length = 12)
+        )
+    
+    design = SingleSubjectDesign(conditions=cond_dict)
+    #design = SequenceDesign(design, "SR_")
+    design = RepeatDesign(design, n_trials) # number of trials will be n_trials * 2
+
+    data, evts = simulate(
+        MersenneTwister(seed),
+        design,
+        components,
+        UniformOnset(offset=offset, width=width),
+        PinkNoise(; noiselevel=noiselevel),
+    )
+
+    # Simulate
+    #design, data, evts = design_and_simulation(seed, cond_dict, components, width, offset; shuffle=shuffle, repeat=n_trials, noiselevel=noiselevel)
+
+    # Make formula to be used during fitting
+    formula = [Any => (@formula(0 ~ 1 + sac_amplitude + condition + evidence + duration), #(@formula(0 ~ 1 + condition + spl(continuous, 4)),
+    firbasis(τ=τ, sfreq=sfreq, name=""),
+    )]
+
+    #=
+    formula = ['S' => (@formula(0 ~ 1 + condition), #(@formula(0 ~ 1 + condition + spl(continuous, 4)),
+        firbasis(τ=τ, sfreq=sfreq, name=""),
+    ), 
+    'R' => (@formula(0 ~ 1),
+        firbasis(τ=τ, sfreq=sfreq, name=""),
+    )]
+    =#
+    return design, data, evts, cond_dict, components, formula
 end

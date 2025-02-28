@@ -25,7 +25,8 @@ function calculate_mse(results::DataFrame, ground_truth::DataFrame, effects_dict
     group_ground_truth = groupby(ground_truth, :event)
     #@debug group_results
     #@debug full_factorial
-    group_mse = []
+    event_mse = []
+    event_weights::AbstractVector{<:Real} = Float64[]
     for both_groups in zip(group_results, group_ground_truth)
         tmp_mse = []
         for row in eachrow(full_factorial)
@@ -36,13 +37,50 @@ function calculate_mse(results::DataFrame, ground_truth::DataFrame, effects_dict
             d1 = subset(both_groups[1], collums => x -> x .== tmp_value) # I am not entirely sure why this works, but it does
             d2 = subset(both_groups[2], collums => x -> x .== tmp_value)
             push!(tmp_mse, mean(d1.yhat .- d2.yhat) .^ 2)
-            #@debug d1, d2
+            @debug d1, d2
 
         end
-        push!(group_mse, mean(tmp_mse))
+        push!(event_weights, Float64(length(tmp_mse)))
+        push!(event_mse, mean(tmp_mse))
     end
 
-    @debug group_mse
+    @debug event_mse, event_weights
     # Calculate the mean of the MSE values
-    return overall_mse = mean(group_mse)
+    return overall_mse = mean(event_mse, weights(event_weights))
+end
+
+"""
+    set_up_parameters(sim_functions; kwargs)
+
+Sets up parameters for simulations
+
+## Input
+sim_functions: which simulation functions to use; can be vector of functions
+
+### Keywords
+- noise = [7]
+- shuffle = [false]
+- offset=[10] 
+- width=[15] 
+- seed=[1] 
+- sfreq=100 
+- τ=(-0.1, 1)
+
+"""
+function set_up_parameters(sim_functions; noise=[7], shuffle=[false], offset=[10], width=[15], seed=[1], sfreq=100, τ=(-0.1, 1))
+
+    # Space for parameters
+    allparams = Dict(
+        "noiselevel" => noise,#collect(3:6),
+        "shuffle" => shuffle, # random order sequence?
+        "offset" => offset, # Event onset offset -> influences overlap
+        "width" => width, #[5, 10, 15, 20, 30, 40, 50], # Width of distribution -> determines jitter; 0 = no jitter
+        "seed" => seed,
+        "sfreq" => sfreq,
+        "τ" => τ,
+        "sim_fun" => sim_functions#[FRP_sim, RT_sim, NAT_sim]
+    )
+
+    return dicts = dict_list(tosymboldict(allparams))
+
 end
