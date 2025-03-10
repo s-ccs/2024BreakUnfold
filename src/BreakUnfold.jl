@@ -3,7 +3,7 @@ module BreakUnfold
 using Reexport
 using Unfold, UnfoldSim
 using DrWatson
-using Random, Statistics, StatsBase
+using Random, Statistics, StatsBase, LinearAlgebra
 @reexport using DataFrames, DataFramesMeta, ProgressBars
 # export all libraries
 

@@ -36,6 +36,7 @@ function jitter_simulation(d::Dict)
     # Simulate ground truth
     gt_effects = get_ground_truth(seed, design, effects_dict, components, τ, sfreq)
     @debug size(evts)
+    
     # Fit Unfold
     m = fit(
         UnfoldModel,
@@ -45,10 +46,14 @@ function jitter_simulation(d::Dict)
         #  solver = (x,y)->Unfold.solver_predefined(x,y;solver=:cholesky)
     )
 
+    # Calculate condition number
+    X = modelmatrix(designmatrix(m))
+    cond_number = cond(X'X, 1)
+
     ## Calculate marginalized effects
     result_effects = effects(effects_dict, m)
 
-    # Calculate MSE :TODO make this more general to be used with all conditions (basically unique())
+    # Calculate MSE
     MSE = calculate_mse(result_effects, gt_effects, effects_dict)
 
     # delete sim_fun from dict for saving
@@ -59,6 +64,7 @@ function jitter_simulation(d::Dict)
         results=result_effects,
         ground_truth=gt_effects,
         model=m,
+        condition_number=cond_number,
         MSE=[MSE],
         d...
     )

@@ -3,7 +3,7 @@ using DrWatson
 @quickactivate :BreakUnfold
 
 
-dicts = set_up_parameters([FRP_sim]; width=[5, 10, 15], seed=collect(1:2), sfreq=100)
+dicts = set_up_parameters([FRP_sim]; width=[5, 10, 15, 20, 30], seed=collect(1:10), sfreq=100)
 
 # Simulations
 all_results = DataFrame()

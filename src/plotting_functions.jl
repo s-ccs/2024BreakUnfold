@@ -17,3 +17,11 @@ function beeswarm_results(df::DataFrame, collumn::Symbol; metric = :MSE)
     #draw!(f, p2)
     f
 end
+
+function plot_CN_MSE(df::DataFrame)
+    # Extract variables
+    CN = df[!, :condition_number]
+    MSE = df[!, :MSE]
+
+    scatter(CN, MSE)
+end
