@@ -3,7 +3,7 @@ module BreakUnfold
 using Reexport
 using Unfold, UnfoldSim
 using DrWatson
-using Random, Statistics, StatsBase, LinearAlgebra
+using Random, Statistics, StatsBase, LinearAlgebra, Parameters
 @reexport using DataFrames, DataFramesMeta, ProgressBars
 # export all libraries
 
@@ -17,5 +17,6 @@ include("helper_functions.jl")
 include("plotting_functions.jl")
 
 export jitter_simulation, FRP_sim, RT_sim, NAT_sim, set_up_parameters
+export beeswarm_results, plot_CN_MSE, plot_error_timecourse, plot_estimation_vs_gt
 
 end

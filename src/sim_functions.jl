@@ -54,7 +54,7 @@ function jitter_simulation(d::Dict)
     result_effects = effects(effects_dict, m)
 
     # Calculate MSE
-    MSE = calculate_mse(result_effects, gt_effects, effects_dict)
+    MSE, event_tp_error = calculate_mse(result_effects, gt_effects, effects_dict)
 
     # delete sim_fun from dict for saving
     delete!(d, :sim_fun)
@@ -66,6 +66,7 @@ function jitter_simulation(d::Dict)
         model=m,
         condition_number=cond_number,
         MSE=[MSE],
+        tp_error=[event_tp_error],
         d...
     )
 end
@@ -112,3 +113,24 @@ function reshape_eff_to_event_arrays(eff::Array{T, 3}, df::DataFrame) where T
     
     return result
 end
+
+# New design for Naturalistic simulation to pull random events (can't have 2000 events...)
+@with_kw struct RandomEventsDesign{T} <: UnfoldSim.AbstractDesign
+    seed::Int = 1
+    nEvents::Int = 100
+    design::T
+end;
+
+# size function for new design
+Base.size(design::RandomEventsDesign) = (design.nEvents,);
+
+function UnfoldSim.generate_events(design::RandomEventsDesign)
+    # generate all events of single subject design
+    full_events = UnfoldSim.generate_events(design.design)
+
+    # Pull random events (without replacement) from events 
+    @assert size(full_events, 1) >= design.nEvents
+    idx = sample(MersenneTwister(design.seed), 1:size(full_events, 1), design.nEvents, replace = false)
+    evts = full_events[idx, :]
+    return evts
+end;

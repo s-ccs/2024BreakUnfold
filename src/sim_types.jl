@@ -63,6 +63,7 @@ function FRP_sim(seed, sfreq, width, offset, τ;shuffle = false, noiselevel=5, n
     return design, data, evts, cond_dict, components, formula
 end
 
+# ---
 # Reaction time like simulation; stimulus + response, one condition or two?, sequence,  
 function RT_sim(seed, sfreq, width, offset, τ; shuffle = false, noiselevel=5, n_trials=15)
     # Create components (one component complex for S(timulus); one for R(esponse))
@@ -118,8 +119,9 @@ function RT_sim(seed, sfreq, width, offset, τ; shuffle = false, noiselevel=5, n
     return design, data, evts, cond_dict, components, formula
 end
 
+# ---
 # Naturalistic/ complex simulation; 
-function NAT_sim(seed, sfreq, width, offset, τ; shuffle = false, noiselevel=5, n_trials=4)
+function NAT_sim(seed, sfreq, width, offset, τ; shuffle = false, noiselevel=5, n_trials=200)
 
     # Create components (one component complex for S(timulus); one for R(esponse))    
         p1 = LinearModelComponent(;
@@ -161,10 +163,12 @@ function NAT_sim(seed, sfreq, width, offset, τ; shuffle = false, noiselevel=5, 
         :evidence => range(1, 5, length = 8),
         :duration => range(2, 8, length = 12)
         )
-    
+    @debug "Condition dictionary for NAT simulation:" cond_dict
+
     design = SingleSubjectDesign(conditions=cond_dict)
     #design = SequenceDesign(design, "SR_")
-    design = RepeatDesign(design, n_trials) # number of trials will be n_trials * 2
+    design = RandomEventsDesign(; seed=seed, nEvents = n_trials, design) # number of trials will be n_trials * 2
+    @debug "Design of NAT simulation:" design
 
     data, evts = simulate(
         MersenneTwister(seed),
@@ -173,9 +177,7 @@ function NAT_sim(seed, sfreq, width, offset, τ; shuffle = false, noiselevel=5, 
         UniformOnset(offset=offset, width=width),
         PinkNoise(; noiselevel=noiselevel),
     )
-
-    # Simulate
-    #design, data, evts = design_and_simulation(seed, cond_dict, components, width, offset; shuffle=shuffle, repeat=n_trials, noiselevel=noiselevel)
+    @debug "Events of NAT simulation:" evts
 
     # Make formula to be used during fitting
     formula = [Any => (@formula(0 ~ 1 + sac_amplitude + condition + evidence + duration), #(@formula(0 ~ 1 + condition + spl(continuous, 4)),
