@@ -83,7 +83,7 @@ function plot_CN_MSE(df::DataFrame)
 end
 
 # Function to filter DataFrame based on an unknown number of conditions
-function filter_with_conditions(df::DataFrame, conditions::Vector{Pair{Symbol, Function}})
+function filter_with_conditions(df::DataFrame, conditions)
     for (col, condition) in conditions
         df = subset(df, col => condition)
     end
@@ -91,14 +91,17 @@ function filter_with_conditions(df::DataFrame, conditions::Vector{Pair{Symbol, F
 end
 
 
-function plot_estimation_vs_gt(df::DataFrame, conditions::Vector{Pair{Symbol, Function}})
+function plot_estimation_vs_gt(df::DataFrame, conditions; title::String="Estimation vs Ground Truth")
     # Plot estimation versus ground truth
     # Filter the DataFrame based on the conditions
     results_df = filter_with_conditions(df[1,:results], conditions)
     gt_df = filter_with_conditions(df[1,:ground_truth], conditions)
     
-    lines(results_df[!, :time], results_df[!, :yhat], label="Estimation")
-    lines!(current_axis(),gt_df[!, :time], gt_df[!, :yhat])
+    f = Figure()
+    ax = Axis(f[1, 1], xlabel = "Time (s)", ylabel = "Amplitude (μV)", title = title)
+    lines!(ax, results_df[!, :time], results_df[!, :yhat], label="Estimation")
+    lines!(ax, gt_df[!, :time], gt_df[!, :yhat])
 
-    current_figure()
+    f
+    return mse = mean((gt_df[!, :yhat] .- results_df[!, :yhat]).^2)
 end

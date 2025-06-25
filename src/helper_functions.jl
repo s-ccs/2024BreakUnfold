@@ -59,8 +59,8 @@ function calculate_mse(results::DataFrame, ground_truth::DataFrame, effects_dict
             @debug "Filtered Results Group:" d1
             @debug "Filtered Ground Truth Group:" d2
             =#
-            tp_error = d1.yhat .- d2.yhat
-            push!(tmp_mse, mean(tp_error) .^ 2)
+            tp_error = d2.yhat .- d1.yhat
+            push!(tmp_mse, mean(tp_error .^ 2))
 
 
         end

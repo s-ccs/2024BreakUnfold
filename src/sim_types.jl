@@ -167,7 +167,7 @@ function NAT_sim(seed, sfreq, width, offset, τ; shuffle = false, noiselevel=5, 
 
     design = SingleSubjectDesign(conditions=cond_dict)
     #design = SequenceDesign(design, "SR_")
-    design = RandomEventsDesign(; seed=seed, nEvents = n_trials, design) # number of trials will be n_trials * 2
+    design = RandomEventsDesign(; seed=seed, nEvents = n_trials, design) # number of trials will be n_trials
     @debug "Design of NAT simulation:" design
 
     data, evts = simulate(
