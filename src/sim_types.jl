@@ -1,12 +1,12 @@
 # Types of simulations
 
 # Design function TODO: make more general; maybe second function
-function design_and_simulation(seed, cond_dict::Dict, components, width, offset; shuffle=false, repeat=15, noiselevel=5)
-    if shuffle
+function design_and_simulation(seed, cond_dict::Dict, components, width, offset; shuff=false, repeat=15, noiselevel=5)
+    if shuff
         design =
             SingleSubjectDesign(;
                 conditions=cond_dict,
-                event_order_function=x -> shuffle(MersenneTwister(seed), x),
+                event_order_function=shuffle,
             ) |> x -> RepeatDesign(x, repeat)
     else
         design =
@@ -15,6 +15,7 @@ function design_and_simulation(seed, cond_dict::Dict, components, width, offset;
             ) |> x -> RepeatDesign(x, repeat)
     end
 
+    @debug "Design:" design
     # Simulate data
     data, evts = simulate(
         MersenneTwister(seed),
@@ -24,12 +25,14 @@ function design_and_simulation(seed, cond_dict::Dict, components, width, offset;
         PinkNoise(; noiselevel=noiselevel),
     )
 
+    @debug "Size evts:" size(evts)
+
     return design, data, evts
 end
 
 
 # FRP like simulation; one shape, not changing, one condition
-function FRP_sim(seed, sfreq, width, offset, τ;shuffle = false, noiselevel=5, n_trials=30) # TODO: change some stuff (e.g. shuffle to kwarks)
+function FRP_sim(seed, sfreq, width, offset, τ;shuff = false, noiselevel=5, n_trials=30) # TODO: change some stuff (e.g. shuff to kwarks)
     ## Components
     p1 = LinearModelComponent(;
         basis=p100(; sfreq=sfreq),
@@ -53,7 +56,7 @@ function FRP_sim(seed, sfreq, width, offset, τ;shuffle = false, noiselevel=5, n
 
     ## Design and simulate data
     cond_dict = Dict(:condition => ["bike", "face"])
-    design, data, evts = design_and_simulation(seed, cond_dict, components, width, offset; shuffle=shuffle, repeat=n_trials, noiselevel=noiselevel)
+    design, data, evts = design_and_simulation(seed, cond_dict, components, width, offset; shuff=shuff, repeat=n_trials/2, noiselevel=noiselevel) # n_trials dividied by 2 because two conditions
 
     # Make formula to be used during fitting
     formula = [Any => (@formula(0 ~ 1 + condition), #(@formula(0 ~ 1 + condition + spl(continuous, 4)),
@@ -65,7 +68,7 @@ end
 
 # ---
 # Reaction time like simulation; stimulus + response, one condition or two?, sequence,  
-function RT_sim(seed, sfreq, width, offset, τ; shuffle = false, noiselevel=5, n_trials=15)
+function RT_sim(seed, sfreq, width, offset, τ; shuff = false, noiselevel=5, n_trials=15)
     # Create components (one component complex for S(timulus); one for R(esponse))
     p1 = LinearModelComponent(;
         basis=p100(; sfreq=sfreq),
@@ -96,9 +99,21 @@ function RT_sim(seed, sfreq, width, offset, τ; shuffle = false, noiselevel=5, n
 
     # Design
     cond_dict = Dict(:condition => ["one", "two"])
-    design = SingleSubjectDesign(conditions=cond_dict)
+    #design = SingleSubjectDesign(conditions=cond_dict)
+    if shuff
+        design =
+            SingleSubjectDesign(;
+                conditions=cond_dict,
+                event_order_function=shuffle,
+            )
+    else
+        design =
+            SingleSubjectDesign(;
+                conditions=cond_dict,
+            )
+    end
     design = SequenceDesign(design, "SR_")
-    design = RepeatDesign(design, n_trials) # number of trials will be n_trials * 2
+    design = RepeatDesign(design, n_trials/2) # number of trials will be n_trials * 2 * 2 because two conditions and two events per trial
 
     # Simulate
     data, evts = simulate(
@@ -121,7 +136,7 @@ end
 
 # ---
 # Naturalistic/ complex simulation; 
-function NAT_sim(seed, sfreq, width, offset, τ; shuffle = false, noiselevel=5, n_trials=200)
+function NAT_sim(seed, sfreq, width, offset, τ; shuff = false, noiselevel=5, n_trials=200)
 
     # Create components (one component complex for S(timulus); one for R(esponse))    
         p1 = LinearModelComponent(;

@@ -104,13 +104,14 @@ sim_functions: which simulation functions to use; can be vector of functions
 - noise = [7]
 - shuffle = [false]
 - offset=[10] 
-- width=[15] 
+- width=[15]
+- ntrials=[200] 
 - seed=[1] 
 - sfreq=100 
 - τ=(-0.1, 1)
 
 """
-function set_up_parameters(sim_functions; noise=[7], shuffle=[false], offset=[10], width=[15], seed=[1], sfreq=100, τ=(-0.1, 1))
+function set_up_parameters(sim_functions; noise=[7], shuffle=[false], offset=[10], width=[15], ntrials=[200], seed=[1], sfreq=100, τ=(-0.1, 1))
 
     # Space for parameters
     allparams = Dict(
@@ -118,6 +119,7 @@ function set_up_parameters(sim_functions; noise=[7], shuffle=[false], offset=[10
         "shuffle" => shuffle, # random order sequence?
         "offset" => offset, # Event onset offset -> influences overlap
         "width" => width, #[5, 10, 15, 20, 30, 40, 50], # Width of distribution -> determines jitter; 0 = no jitter
+        "ntrials" => ntrials, # number of trials
         "seed" => seed,
         "sfreq" => sfreq,
         "τ" => τ,

@@ -25,6 +25,48 @@ function beeswarm_results(df::DataFrame, collumn::Symbol; metric = :MSE)
     # limits = (nothing, (-0.2, 60))
     #draw!(f, p2)
     f
+    return f
+end
+
+"""
+function raincloud_results(df::DataFrame, collumn::Symbol; metric = :MSE)
+
+Plots a raincloud plot of the results in `df` grouped by `collumn` and colored by `collumn`.
+The metric to plot can be specified with the `metric` keyword argument, defaulting to `:MSE`.
+The function also calculates the mean of the specified metric for each group and adds a line plot of these means.
+
+"""
+function raincloud_results(df::DataFrame, collumn::Symbol, f = Figure();metric = :MSE, kwargs...)
+    
+    p1 = data(df) * mapping(collumn => nonnumeric, metric, color = collumn) * visual(RainClouds; kwargs...)    
+    gdf = groupby(df, collumn)
+    means = combine(gdf, metric => mean)
+    p2 = data(means) * mapping(collumn, :MSE_mean) * visual(Lines) + data(means) * mapping(collumn => nonnumeric, :MSE_mean) * visual(Scatter)
+
+    #tm = unique(df[!, collumn])
+    #Makie.Categorical(Makie.wong_colors()[1:7])
+    limits = (nothing, (-1.5, 60))
+    draw!(f, p1, scales(Color = (;colormap = Makie.wong_colors())); axis = (; xlabel = String(collumn), ylabel = String(metric), limits = limits))
+    #draw!(f, p2)
+    f
+    return f
+end
+
+function raincloud_all_designs(df::DataFrame, collumn::Symbol; size = (1200, 800),metric = :MSE, limits = (nothing, (-1.5, 60)), kwargs...)
+    
+    p1 = data(df) * mapping(collumn => nonnumeric, metric, color = collumn, col = :sim_function => sorter(["RT", "FRP", "NAT"])) * visual(RainClouds; kwargs...)    
+    gdf = groupby(df, collumn)
+    means = combine(gdf, metric => mean)
+    p2 = data(means) * mapping(collumn, :MSE_mean) * visual(Lines) + data(means) * mapping(collumn => nonnumeric, :MSE_mean) * visual(Scatter)
+
+    #tm = unique(df[!, collumn])
+    #Makie.Categorical(Makie.wong_colors()[1:7])
+    f = Figure(;size=size)
+    
+    draw!(f, p1, scales(Color = (;colormap = Makie.wong_colors())); axis = (; xlabel = String(collumn), ylabel = String(metric), limits = limits))
+    #draw!(f, p2)
+    f
+    return f
 end
 
 function plot_error_timecourse(df::DataFrame, layout::Symbol; only_means::Bool = true)

@@ -23,7 +23,7 @@ end
 
 # Main simulation function; to be used in Dr.Watson script
 function jitter_simulation(d::Dict)
-    @unpack noiselevel, shuffle, offset, width, seed, sfreq, τ, sim_fun = d
+    @unpack noiselevel, shuffle, offset, width, ntrials, seed, sfreq, τ, sim_fun = d
 
     design, # Simulation design
     data, # Simulated data
@@ -31,11 +31,12 @@ function jitter_simulation(d::Dict)
     effects_dict, # Dictionary for conditions and such; needed for marg. eff and ground truth
     components, # components of ERP
     formula = # formula for fitting
-        sim_fun(seed, sfreq, width, offset, τ; shuffle = shuffle, noiselevel=noiselevel, n_trials=90)
+        sim_fun(seed, sfreq, width, offset, τ; shuff = shuffle, noiselevel=noiselevel, n_trials=ntrials)
 
     # Simulate ground truth
     gt_effects = get_ground_truth(seed, design, effects_dict, components, τ, sfreq)
-    @debug size(evts)
+    @debug "Size of events:" size(evts)
+    @debug "First events:" first(evts,10)
     
     # Fit Unfold
     m = fit(

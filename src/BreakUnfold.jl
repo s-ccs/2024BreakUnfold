@@ -17,6 +17,6 @@ include("helper_functions.jl")
 include("plotting_functions.jl")
 
 export jitter_simulation, FRP_sim, RT_sim, NAT_sim, set_up_parameters
-export beeswarm_results, plot_CN_MSE, plot_error_timecourse, plot_estimation_vs_gt
+export beeswarm_results, plot_CN_MSE, plot_error_timecourse, plot_estimation_vs_gt, raincloud_results, raincloud_all_designs
 
 end
