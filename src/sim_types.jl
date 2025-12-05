@@ -9,6 +9,7 @@ function design_and_simulation(seed, cond_dict::Dict, components, width, offset;
                 event_order_function=shuffle,
             ) |> x -> RepeatDesign(x, repeat)
     else
+        @debug "Number of repeats: $repeat"
         design =
             SingleSubjectDesign(;
                 conditions=cond_dict,
@@ -56,7 +57,7 @@ function FRP_sim(seed, sfreq, width, offset, τ;shuff = false, noiselevel=5, n_t
 
     ## Design and simulate data
     cond_dict = Dict(:condition => ["bike", "face"])
-    design, data, evts = design_and_simulation(seed, cond_dict, components, width, offset; shuff=shuff, repeat=n_trials/2, noiselevel=noiselevel) # n_trials dividied by 2 because two conditions
+    design, data, evts = design_and_simulation(seed, cond_dict, components, width, offset; shuff=shuff, repeat=Int(round(n_trials/2)), noiselevel=noiselevel) # n_trials dividied by 2 because two conditions
 
     # Make formula to be used during fitting
     formula = [Any => (@formula(0 ~ 1 + condition), #(@formula(0 ~ 1 + condition + spl(continuous, 4)),
