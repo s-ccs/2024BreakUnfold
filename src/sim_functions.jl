@@ -59,7 +59,7 @@ function jitter_simulation(d::Dict)
 
     # delete sim_fun from dict for saving
     delete!(d, :sim_fun)
-    @show d
+    @debug d
     return DataFrame(;
         sim_function = string(split(string(sim_fun), "_")[1]),
         results=result_effects,
@@ -74,11 +74,11 @@ end
 
 # Function to zero-pad ground_truth and get into correct format
 function format_gt(gt_data, τ, sfreq)
-    sp = Int(abs(τ[1]) * sfreq) + Int(τ[2] * sfreq) # number of sample points
+    sp = Int(round(abs(τ[1]) * sfreq)) + Int(round(τ[2] * sfreq)) # number of sample points
     padded_data = zeros(sp+1, size(gt_data, 2))
 
     for col in 1:size(gt_data, 2)
-        tmp = pad_array(reshape(gt_data[:,col], size(gt_data[:,col], 1)), (Int(τ[1] * sfreq), Int(τ[2] * 100 - size(gt_data[:,col], 1) + 1)), 0) # pad ground truth to be same length as estimates
+        tmp = pad_array(reshape(gt_data[:,col], size(gt_data[:,col], 1)), (Int(round(τ[1] * sfreq)), Int(round(τ[2] * sfreq) - size(gt_data[:,col], 1) + 1)), 0) # pad ground truth to be same length as estimates
         padded_data[:, col] = tmp
     end
     padded_data = reshape(padded_data, 1, size(padded_data)...) # reshape to be channel x samplepoints x event
