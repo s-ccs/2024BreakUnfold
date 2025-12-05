@@ -4,7 +4,7 @@ using DrWatson
 
 # FRP, RT, NAT simulations
 force_simulation = false
-dicts = set_up_parameters([RT_sim, FRP_sim, NAT_sim]; shuffle=[true, false], offset=[15], width=[1, 5, 10, 20, 30, 50, 100], seed=collect(1:50), sfreq=100, ntrials=[200]) 
+dicts = set_up_parameters([RT_sim, FRP_sim, NAT_sim]; shuffle=[false], offset=[15], width=[1, 5, 10, 20, 30, 50, 100], seed=collect(1:50), sfreq=100, ntrials=[200]) 
 
 # Simulations
 all_results = DataFrame()
