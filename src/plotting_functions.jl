@@ -150,26 +150,44 @@ end
 
 # -------------------------------------------------------------
 
-function plot_sensitivity(res)
-    fig = Figure(size=(600, 400))
+function plot_sensitivity(res; param_names=nothing, size=(900, 600))
+    # - param_names: optional Vector of names (Symbols or Strings) for parameters
+    # If not provided, parameters will be named p1..pN
 
-    barplot(fig[2, 1],
-        collect(1:length(res.S1)),
-        vec(res.S1),
-        color=:green,
-        axis=(xticksvisible=true, xticklabelsvisible=true,
-            title="First order index", ylabel="First order"))
+    n = length(res.S1)
+    if param_names === nothing
+        labels = ["p$(i)" for i in 1:n]
+    else
+        labels = String.(param_names)
+    end
 
-    barplot(fig[1, 1], collect(1:length(res.ST)), vec(res.ST), color=:green,
-        axis=(xticksvisible=false, xticklabelsvisible=false, title="Total order index", ylabel="Total order"))
+    fig = Figure(size=size)
 
+    # Total order 
+    ax1 = fig[1, 1] = Axis(fig, title = "Total order index", ylabel = "ST")
+    barplot!(ax1, 1:n, vec(res.ST); color=:green)
+    ax1.xticks = (1:n, labels)
+    ax1.xticklabelrotation = 45
+
+    # First order
+    ax2 = fig[2, 1] = Axis(fig, title = "First order index", ylabel = "S1")
+    barplot!(ax2, 1:n, vec(res.S1); color=:blue)
+    ax2.xticks = (1:n, labels)
+    ax2.xticklabelrotation = 45
+
+    # Second order (S2) - plot as heatmap when matrix-like, otherwise fallback to barplot
     if hasproperty(res, :S2)
-        barplot(fig[3, 1],
-            collect(1:length(res.S2)),
-            vec(res.S2),
-            color=:green,
-            axis=(xticksvisible=true, xticklabelsvisible=false,
-                title="Second order index", ylabel="Second order"))
+        S2 = res.S2
+        if isa(S2, AbstractMatrix) && size(S2, 1) == n && size(S2, 2) == n
+            ax3 = fig[1:2, 2] = Axis(fig, title = "Second order indices (S2)")
+            hm = heatmap!(ax3, 1:n, 1:n, S2; colormap = :viridis)
+            ax3.xticks = (1:n, labels)
+            ax3.yticks = (1:n, labels)
+            ax3.xticklabelrotation = 45
+        else
+            ax3 = fig[3, 1] = Axis(fig, title = "Second order index (flattened)", ylabel = "S2")
+            barplot!(ax3, collect(1:length(vec(S2))), vec(S2); color=:orangered)
+        end
     end
 
     fig

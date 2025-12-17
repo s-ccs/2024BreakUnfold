@@ -114,8 +114,9 @@ function RT_sim(seed, sfreq, width, offset, τ; shuff = false, noiselevel=5, n_t
             )
     end
     design = SequenceDesign(design, "SR_")
-    design = RepeatDesign(design, n_trials/2) # number of trials will be n_trials * 2 * 2 because two conditions and two events per trial
+    design = RepeatDesign(design, round(Int,n_trials/2)) # number of trials will be n_trials * 2 * 2 because two conditions and two events per trial
 
+    #@show width offset noiselevel n_trials
     # Simulate
     data, evts = simulate(
         MersenneTwister(seed),

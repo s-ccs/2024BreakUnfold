@@ -25,8 +25,7 @@ bounds = [(1, 50),
         #(50, 200)
         ]
 
-# template dict with defaults for all jitter_simulation keys
-template = set_up_parameters([FRP_sim])[1]
+
 
 # convert some params to integer 
 int_params = Set([:ntrials, :sfreq, :width, :offset, :noiselevel])
@@ -85,7 +84,7 @@ function run_sobol(jitter_fun; param_names=param_names, bounds=bounds, template=
 
     # run analysis (Sobol)
     println("Running Sobol GSA with $samples samples, this might take a while...")
-    res = gsa(model, Sobol(;order = [0, 1, 2]), A, B; samples = samples, rng = rng)
+    res = gsa(model, Sobol(;order = [0, 1, 2]), A, B; rng = rng)
 
 
     return res
@@ -93,7 +92,26 @@ end
 
 # Test the sensitivity analysis
 samples = 50000
+#=
+template = set_up_parameters([FRP_sim])[1]
 println("Running quick sensitivity (samples=$samples)...")
 res = run_sobol(jitter_simulation; samples=samples)
 
 BreakUnfold.plot_sensitivity(res)
+
+# Save results
+wsave("../data/sensitivity_analysis/2025-12-05-sobol-results.jld2", Dict("results" => res))
+=#
+for sim in (FRP_sim,)
+    # prepare template for this simulation function
+    temp = set_up_parameters([sim])[1]
+    println("Running sensitivity for $(nameof(sim)) (samples=$samples)...")
+    res = run_sobol(jitter_simulation; samples=samples, template=temp)
+
+    # plot and save results per simulation
+    BreakUnfold.plot_sensitivity(res)
+
+    out_fname = "./data/sensitivity_analysis/2025-12-05-sobol-results-$(string(nameof(sim))).jld2"
+    println("Saving results to $out_fname")
+    wsave(out_fname, Dict("results" => res, "sim" => string(nameof(sim))))
+end
