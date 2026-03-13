@@ -114,6 +114,30 @@ function plot_error_timecourse(df::DataFrame, layout::Symbol; only_means::Bool=t
     end
 end
 
+#------------------------------------------------------------------------------------------------------------------------
+"""
+    plot_only_gt(df::DataFrame, covariates::Vector{Symbol})
+
+Function to plot the ground truth found in data frame df. Plots each event and indicated covariates in separate panels with any decorations.
+
+# Arguments
+- `df::DataFrame`: DataFrame containing the ground truth data with columns :time, :yhat, :event, and covariate columns
+- `covariates::Vector{Symbol}`: Vector of covariate column names to use for faceting the plots
+"""
+function plot_only_gt(df::DataFrame, col)
+    # Build the mapping dynamically based on covariates
+    mapping_expr = mapping(:time, :yhat, color=col)
+    
+    plt = data(df) * mapping_expr * visual(Lines)
+    
+    f = Figure()
+    draw!(f, plt; axis=(; xlabel="Time (s)", ylabel="Amplitude (μV)"))
+    hidedecorations!(current_axis())
+    hidespines!(current_axis())
+    return f
+end
+
+#------------------------------------------------------------------------------------------------------------------------
 function plot_CN_MSE(df::DataFrame)
     # Plot condition number versus MSE
 
@@ -165,18 +189,18 @@ function plot_sensitivity(res; param_names=nothing, size=(900, 600))
 
     # Total order 
     ax1 = fig[1, 1] = Axis(fig, title = "Total order index", ylabel = "ST")
-    barplot!(ax1, 1:n, vec(res.ST); color=:green)
-    ax1.xticks = (1:n, labels)
-    ax1.xticklabelrotation = 45
-
+    barplot!(ax1, 1:n, vec(res.ST); color=Makie.wong_colors()[1])
+    #ax1.xticks = (1:n, labels)
+    #ax1.xticklabelrotation = 45
+    ax1.xticklabelsvisible = false
     # First order
     ax2 = fig[2, 1] = Axis(fig, title = "First order index", ylabel = "S1")
-    barplot!(ax2, 1:n, vec(res.S1); color=:blue)
+    barplot!(ax2, 1:n, vec(res.S1); color=Makie.wong_colors()[2])
     ax2.xticks = (1:n, labels)
-    ax2.xticklabelrotation = 45
+    #ax2.xticklabelrotation = 45
 
     # Second order (S2) - plot as heatmap when matrix-like, otherwise fallback to barplot
-    if hasproperty(res, :S2)
+    if false #hasproperty(res, :S2)
         S2 = res.S2
         if isa(S2, AbstractMatrix) && size(S2, 1) == n && size(S2, 2) == n
             ax3 = fig[1:2, 2] = Axis(fig, title = "Second order indices (S2)")

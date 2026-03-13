@@ -91,7 +91,7 @@ function run_sobol(jitter_fun; param_names=param_names, bounds=bounds, template=
 end
 
 # Test the sensitivity analysis
-samples = 50000
+samples = 30000
 #=
 template = set_up_parameters([FRP_sim])[1]
 println("Running quick sensitivity (samples=$samples)...")
@@ -111,7 +111,17 @@ for sim in (FRP_sim,)
     # plot and save results per simulation
     BreakUnfold.plot_sensitivity(res)
 
-    out_fname = "./data/sensitivity_analysis/2025-12-05-sobol-results-$(string(nameof(sim))).jld2"
+    out_fname = "./data/sensitivity_analysis/2026-01-12-sobol-results-$(string(nameof(sim))).jld2"
     println("Saving results to $out_fname")
     wsave(out_fname, Dict("results" => res, "sim" => string(nameof(sim))))
 end
+
+###
+# Load results
+out_fname = "./data/sensitivity_analysis/2026-01-12-sobol-results-$(string(nameof(FRP_sim))).jld2"
+
+res = load(out_fname)
+
+BreakUnfold.plot_sensitivity(res["results"], param_names = [:jitter, :offset, :trialnumber, :noise])
+
+save("./plots/2026-01-31-sobol-results.pdf", BreakUnfold.current_figure())
